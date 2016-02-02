@@ -1,3 +1,19 @@
+# ###########################File Discription #####################################
+#This is a method which read in the original files, and then generates two folders,
+# one contains filtered homework, and the other contains an output file with dictionarys
+# line by line. The later one contains all eval events with their error type, success, 
+# syntax error or type error. And records every session's start time and end time. 
+# For all session dicts its form is 
+# {"start", "end", session}
+# For all error dicts its form is
+# {"time","session","problem","error"}
+###############################Information##########################################
+# modified from Yijun's code, and instructed by Yijun
+# Author :Jiani Huang
+# Date: Feb. 02, 2016
+#####################################################################################
+
+
 import re
 import os
 import json
