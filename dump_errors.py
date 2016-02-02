@@ -21,55 +21,65 @@ def findhw(targets, outputs):
       copy(path, outputs)
 
 # group all the events that completed in a session by adding a group number to the events
-def group_sessions(infile,  problems):
+def dump_events(infile, outputfile, problems):
     session_numbers = []
-    with open(infile, 'r+') as inf:
+    with open(infile, 'r+') as inf, open(outputfile,'a') as of:
       num = 0
       lastcheck = 0
       for line in inf:
         item = eval(line)
         tag = 0
         done = False
+        toStore = dict()
+        #a new session starts
         if item['time'] - lastcheck > 62:
-            num += 1
+
+            #record the last event in the session
+            toStore['session'] = num
+
+            #tag the end of a session as end timer event
+            toStore['end'] = lastcheck
+            toStore['start'] = item['time']
+            
+            #store the last event of a session
+            json.dump(toStore,of)
+            of.write('\n')
+
             lastcheck = item['time']
+            num += 1
+            continue
+
+        #record every eval session
         if item['event']['type'] == 'eval':
             for i in problems:
                 for j in item['ocaml']:
+                    
+                    #add the type of error for error events
+                    if not j['out']:
+                        toStore['error'] = "Success"
+                    elif re.search('Syntax error',j['out'],re.IGNORECASE) is not None:
+                        toStore['error'] = "Syntax error"
+                    else:
+                        toStore['error'] = "Type error"
+
                     if i in str.split(j['in']):
+                        #tag the problem it belong to
                         tag = problems.index(i)
+
+                        #create a dictionary for every eval event
+                        
+                        toStore['time'] = item['time']
+                        toStore['session'] = num
+                        toStore['problem'] = tag
+
+                        #dump the event to a file
+                        json.dump(toStore, of)
+                        of.write('\n')
+
                         done = True
                         break
                 if done: break
-        session_numbers.append([item['event']['type'], num, tag])
-    return session_numbers
 
-# for each infile, writes the following foramt to the outfile:
-# {'tag': #, 'time': #}
-# where 'tag' is the index of the problem in list problems,
-# and 'time' is the unix time stamp
-def label_problems(infile, outfile, problems, groups):
-    index = 0
-    with open(infile) as inf, open(outfile,'a') as of:
-        for line in inf:
-            item = eval(line)
-            toStore = dict()
-            toStore['time'] = item['time']
-
-            if item['event']['type'] == 'eval' and groups[index][2] != 0:
-                toStore['tag'] = groups[index][2]
-            else:
-                flag = False
-                for i in range(index, len(groups)):
-                    if groups[i][0] == 'eval'and groups[i][2] != 0:
-                        toStore['tag'] = groups[i][2]
-                        flag = True
-                        break
-                if flag == False: toStore['tag'] = 0
-
-            json.dump(toStore, of)
-            of.write('\n')
-            index += 1
     inf.close()
     of.close()
 
@@ -91,5 +101,4 @@ if not os.path.exists(output2):
 
 hw1 = list()
 for i in os.listdir(output):
-    session_numbers = group_sessions(os.path.join(target,i), problems)
-    label_problems(os.path.join(target,i), os.path.join(output2,i), problems, session_numbers)
+    dump_events(os.path.join(target,i), os.path.join(output2,i), problems)
