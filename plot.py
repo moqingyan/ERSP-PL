@@ -1,6 +1,6 @@
 import os
 import json
-
+import csv
 #import numpy as np
 #import matplotlib.pyplot as plt
 
@@ -10,7 +10,7 @@ def build_dict(infile, problems):
         for line in inf:
             item = eval(line)
 
-            if item['tag'] == 0 or item['time'] == 0: 
+            if item['tag'] == 0 or item['time'] == 0:
                 continue
 
             current = item['time']
@@ -31,37 +31,49 @@ def build_dict(infile, problems):
 ################################################################################################### Main
 
 dir = os.path.dirname('__file__')
-infile = os.path.join(dir, 'homework1-withtag')
+infile = os.path.join(dir, 'homework3-withtag')
 
 # homework 1 problems
-problems = ['???','palindrome', 'listReverse', 'digitalRoot', 'additivePersistence', 'digitsOfInt', 'sumList']
+problems = ['???','bigMul','mulByDigit','bigAdd','removeZero', 'padZero', 'clone', 'stringOfList', 'sepConcat', 'pipe', 'sqsum']
 
-hw1 = list()
+hw3 = list()
 for i in os.listdir(infile):
-    hw1.append(build_dict(os.path.join(infile,i), problems))
+    hw3.append(build_dict(os.path.join(infile,i), problems))
 
 #print hw1
 
-"""
-summary = dict()
-for i in problems:
-    if i == '???': continue
-    summary[i] = sum(item[i]['duration'] for item in hw1 if item.has_key(i))
-print summary
-"""
 
 summary = dict()
 for i in problems:
     if i == '???': continue
-    summary[i] = [int(item[i]['duration']/60) for item in hw1 if item.has_key(i)]
+    summary[i] = sum(item[i]['duration'] for item in hw3 if (i in item))
+print (summary)
 
-#print summary
-#print int(max(summary['sumList']))
+
+summary = dict()
+for i in problems:
+    if i == '???': continue
+    summary[i] = [int(item[i]['duration']/60) for item in hw3 if (i in item)]
+
+print (summary)
+#print (int(max(summary['sumList'])))
 #print int(min(summary['sumList']))
 
-#for i in summary['palindrome']:
-    #print(i)
+#for i in summary['bigMul']:
+#    print(i)
 
-for c in range(1, 1500):
-    print sum(i < c for i in summary['sumList'])
-    c += 30
+problems_2 = ['bigMul','mulByDigit','bigAdd','removeZero', 'padZero', 'clone', 'stringOfList', 'sepConcat', 'pipe', 'sqsum']
+
+for q in problems_2:
+    stdnum = []
+    with open('test.csv','a') as csvfile:
+        writer = csv.writer(csvfile)
+        for c in range(1, 1500):
+
+            stdnum.append(sum(i < c for i in summary[q]))
+            c += 30
+
+    #print (stdnum)
+        print(q)
+        writer.writerow(q)
+        writer.writerow(stdnum)

@@ -47,6 +47,7 @@ def dump_events(infile, outputfile, problems):
         tag = 0
         done = False
         toStore = dict()
+
         #a new session starts
         if item['time'] - lastcheck > 62:
 
@@ -56,7 +57,8 @@ def dump_events(infile, outputfile, problems):
             #tag the end of a session as end timer event
             toStore['end'] = lastcheck
             toStore['start'] = item['time']
-            
+            toStore['type'] = "session"
+
             #store the last event of a session
             json.dump(toStore,of)
             of.write('\n')
@@ -65,6 +67,7 @@ def dump_events(infile, outputfile, problems):
             num += 1
             continue
 
+        lastcheck = item['time']
         #record every eval session
         if item['event']['type'] == 'eval':
             for i in problems:
@@ -87,6 +90,7 @@ def dump_events(infile, outputfile, problems):
                         toStore['time'] = item['time']
                         toStore['session'] = num
                         toStore['problem'] = tag
+                        toStore['type'] = "error"
 
                         #dump the event to a file
                         json.dump(toStore, of)
